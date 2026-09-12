@@ -3,7 +3,7 @@ import { navigationItems } from './Sidebar';
 import { useSimulation } from '../context/SimulationContext';
 
 export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefreshing, lastUpdated = 'Just now' }) {
-  const { isDemoMode, toggleDemoMode } = useSimulation();
+  const { isDemoMode, toggleDemoMode, isLiveBackend, liveWeather } = useSimulation();
   const currentItem = navigationItems.find((item) => item.id === activeTab) || navigationItems[0];
 
   return (
@@ -26,6 +26,27 @@ export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefres
       </div>
 
       <div className="top-navbar-right">
+        {/* Live Weather Indicator if connected */}
+        {isLiveBackend && liveWeather && (
+          <div
+            className="badge badge-emerald-success"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: 'rgba(16, 185, 129, 0.12)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              color: '#34d399',
+              fontSize: '0.74rem',
+              padding: '0.3rem 0.6rem',
+            }}
+            title="Live meteorological data from Open-Meteo API"
+          >
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }}></span>
+            <span>LIVE: {liveWeather.temperature_c}°C • Wind {liveWeather.wind_speed_m_s} m/s</span>
+          </div>
+        )}
+
         {/* Demo Mode Button in Header */}
         <button
           className={`btn ${isDemoMode ? 'btn-primary-glow active' : 'btn-secondary-outline'} btn-sm demo-mode-toggle`}
@@ -45,17 +66,20 @@ export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefres
           </span>
         )}
 
-        {/* Prototype Mode Indicator */}
+        {/* Backend Connectivity Status Badge */}
         {!isDemoMode && (
-          <div className="badge badge-amber-warning">
-            <span>Prototype Mode</span>
+          <div
+            className={`badge ${isLiveBackend ? 'badge-emerald-success' : 'badge-amber-warning'}`}
+            style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+          >
+            <span>{isLiveBackend ? 'LIVE API ONLINE' : 'PROTOTYPE MODE'}</span>
           </div>
         )}
 
         {/* Animated Status Indicator: ● SYSTEM ONLINE */}
         <div className="status-indicator-online" title={`Grid telemetry online. Last sync: ${lastUpdated}`}>
           <span className="live-pulse-dot"></span>
-          <span>SYSTEM ONLINE</span>
+          <span>{isLiveBackend ? 'BACKEND LIVE' : 'SYSTEM ONLINE'}</span>
         </div>
 
         {/* Sync Trigger */}
