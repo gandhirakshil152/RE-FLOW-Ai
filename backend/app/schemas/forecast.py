@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 
 class ForecastDataPoint(BaseModel):
+    date: str
     time: str
     timestamp: str
     solar_kw: float
@@ -27,4 +28,9 @@ class ForecastResponse(BaseModel):
     model_name: Optional[str] = "RE-FLOW ML Ensemble v1.2"
     r2_score: Optional[float] = 0.942
     mae_kw: Optional[float] = 16.4
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    selected_date: Optional[str] = None
+    available_dates: List[str] = []
+
 
