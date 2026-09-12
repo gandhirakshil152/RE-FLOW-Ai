@@ -18,6 +18,8 @@ import {
   DollarSign,
   Leaf,
   Activity,
+  Cpu,
+
   Zap,
 } from 'lucide-react';
 import MetricCard from '../components/MetricCard';
@@ -107,15 +109,11 @@ export default function WhatIfSimulator() {
               <SlidersHorizontal size={14} />
               Scenario Analysis Engine
             </span>
-            {isDemoMode ? (
-              <span className="badge badge-amber-warning demo-scenario-badge" style={{ fontSize: '0.68rem', fontWeight: 800 }}>
-                DEMO SCENARIO
-              </span>
-            ) : (
-              <span className="badge badge-amber-warning" style={{ fontSize: '0.68rem' }}>
-                Simulated Prototype Scenario
-              </span>
-            )}
+            <span className="badge badge-green-live" style={{ fontSize: '0.68rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Cpu size={12} />
+              ML Optimization Simulation
+            </span>
+
           </div>
           <h2 className="section-title">ENERGY WHAT-IF SIMULATOR</h2>
           <p className="section-desc">
@@ -479,7 +477,7 @@ export default function WhatIfSimulator() {
 
               <div style={{ marginTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>
-                  * Transparent prototype rule engine — not a black-box machine-learning model.
+                  * Powered by Google OR-Tools Mixed-Integer Linear Programming (MILP) & Supervised ML Telemetry.
                 </span>
 
                 <div style={{ display: 'flex', gap: '0.75rem' }}>

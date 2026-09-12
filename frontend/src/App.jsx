@@ -6,6 +6,9 @@ import Forecast from './pages/Forecast';
 import SmartScheduler from './pages/SmartScheduler';
 import WhatIfSimulator from './pages/WhatIfSimulator';
 import ImpactCenter from './pages/ImpactCenter';
+import AICopilotDrawer from './components/AICopilotDrawer';
+import MLTrainingModal from './components/MLTrainingModal';
+import { Brain, Cpu } from 'lucide-react';
 import { SimulationProvider, useSimulation } from './context/SimulationContext';
 
 function AppContent() {
@@ -15,7 +18,12 @@ function AppContent() {
     isRefreshing,
     handleRefresh,
     lastUpdated,
+    isCopilotOpen,
+    setIsCopilotOpen,
+    isTrainingModalOpen,
+    setIsTrainingModalOpen,
   } = useSimulation();
+
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -76,7 +84,63 @@ function AppContent() {
           </p>
         </footer>
       </div>
+
+      {/* Floating Action Buttons for Hackathon Presentation */}
+      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 900, display: 'flex', gap: '0.65rem' }}>
+        <button
+          onClick={() => setIsTrainingModalOpen(true)}
+          className="btn btn-secondary-outline"
+          style={{
+            borderRadius: '24px',
+            padding: '0.65rem 1.1rem',
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(0, 194, 255, 0.4)',
+            color: '#38bdf8',
+            boxShadow: '0 8px 25px rgba(0,0,0,0.4)',
+            fontSize: '0.82rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px',
+          }}
+          title="Retrain ML model on live Open-Meteo satellite feed"
+        >
+          <Cpu size={16} />
+          <span>Retrain on Satellite</span>
+        </button>
+
+        <button
+          onClick={() => setIsCopilotOpen(true)}
+          className="btn btn-primary-glow"
+          style={{
+            borderRadius: '24px',
+            padding: '0.65rem 1.25rem',
+            boxShadow: '0 8px 25px rgba(0, 245, 155, 0.35)',
+            fontSize: '0.82rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '7px',
+          }}
+          title="Open RE-FLOW AI Copilot"
+        >
+          <Brain size={16} />
+          <span>AI Copilot</span>
+        </button>
+      </div>
+
+      {/* Global AI Copilot Drawer */}
+      <AICopilotDrawer
+        isOpen={isCopilotOpen}
+        onClose={() => setIsCopilotOpen(false)}
+      />
+
+      {/* Real-time Satellite ML Training Modal */}
+      <MLTrainingModal
+        isOpen={isTrainingModalOpen}
+        onClose={() => setIsTrainingModalOpen(false)}
+      />
     </div>
+
   );
 }
 

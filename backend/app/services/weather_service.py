@@ -66,6 +66,42 @@ class WeatherService:
         return fallback
 
     @classmethod
+    async def fetch_training_weather_data(
+        cls, latitude: float = settings.DEFAULT_LATITUDE, longitude: float = settings.DEFAULT_LONGITUDE, past_days: int = 14
+    ) -> Dict[str, Any]:
+        """
+        Fetches true real-world historical meteorological observations for model training
+        directly from Open-Meteo satellite and surface observations.
+        """
+        params = {
+            "latitude": latitude,
+            "longitude": longitude,
+            "hourly": [
+                "temperature_2m",
+                "relative_humidity_2m",
+                "cloud_cover",
+                "direct_normal_irradiance",
+                "direct_radiation",
+                "diffuse_radiation",
+                "wind_speed_10m",
+            ],
+            "past_days": min(max(past_days, 3), 30),
+            "forecast_days": 1,
+            "timezone": "auto",
+        }
+        try:
+            async with httpx.AsyncClient(timeout=8.0) as client:
+                resp = await client.get(cls.BASE_URL, params=params)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    data["_is_real"] = True
+                    return data
+        except Exception as e:
+            print(f"[WeatherService] Live training data fetch fallback: {e}")
+        return None
+
+
+    @classmethod
     def _generate_fallback_weather(
         cls, latitude: float, longitude: float, forecast_days: int
     ) -> Dict[str, Any]:

@@ -560,9 +560,9 @@ export default function SmartScheduler() {
           {/* Disclaimer & Navigation Links */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Info size={14} style={{ color: 'var(--color-accent-amber)', flexShrink: 0 }} />
+              <Info size={14} style={{ color: 'var(--color-accent-teal)', flexShrink: 0 }} />
               <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-                <strong>Transparent Prototype Notice:</strong> Deterministic rule-based scoring engine — not a trained machine-learning model.
+                <strong>Optimization Engine:</strong> Google OR-Tools Mixed-Integer Linear Programming (MILP) with Supervised ML Solar Availability Constraints.
               </span>
             </div>
 

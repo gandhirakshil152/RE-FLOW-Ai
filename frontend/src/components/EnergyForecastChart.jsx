@@ -55,7 +55,9 @@ export default function EnergyForecastChart({
   badgeIcon: BadgeIcon = Sparkles,
   height = 360,
   icon: HeaderIcon = Activity,
+  showConfidenceInterval = false,
 }) {
+
   return (
     <div className="chart-wrapper">
       <div className="chart-header-row">
@@ -163,6 +165,20 @@ export default function EnergyForecastChart({
 
             {mode === 'renewable' && (
               <>
+                {showConfidenceInterval && (
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="confidence_p90"
+                    name="P90 Upper CI"
+                    stroke="#10b981"
+                    strokeDasharray="3 3"
+                    strokeWidth={1}
+                    fillOpacity={0.08}
+                    fill="#10b981"
+                    isAnimationActive={false}
+                  />
+                )}
                 <Area
                   yAxisId="left"
                   type="monotone"
@@ -176,6 +192,19 @@ export default function EnergyForecastChart({
                   animationDuration={850}
                   animationEasing="ease-out"
                 />
+                {showConfidenceInterval && (
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="confidence_p10"
+                    name="P10 Lower CI"
+                    stroke="#059669"
+                    strokeDasharray="3 3"
+                    strokeWidth={1}
+                    fillOpacity={0}
+                    isAnimationActive={false}
+                  />
+                )}
                 <Line
                   yAxisId="right"
                   type="monotone"
@@ -193,6 +222,20 @@ export default function EnergyForecastChart({
 
             {mode === 'demand' && (
               <>
+                {showConfidenceInterval && (
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="demand_p90"
+                    name="P90 Demand Bound"
+                    stroke="#38bdf8"
+                    strokeDasharray="3 3"
+                    strokeWidth={1}
+                    fillOpacity={0.08}
+                    fill="#38bdf8"
+                    isAnimationActive={false}
+                  />
+                )}
                 <Area
                   yAxisId="left"
                   type="monotone"
@@ -206,6 +249,19 @@ export default function EnergyForecastChart({
                   animationDuration={850}
                   animationEasing="ease-out"
                 />
+                {showConfidenceInterval && (
+                  <Area
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="demand_p10"
+                    name="P10 Demand Bound"
+                    stroke="#0284c7"
+                    strokeDasharray="3 3"
+                    strokeWidth={1}
+                    fillOpacity={0}
+                    isAnimationActive={false}
+                  />
+                )}
                 <Line
                   yAxisId="right"
                   type="monotone"

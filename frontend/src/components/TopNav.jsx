@@ -1,10 +1,19 @@
-import { Menu, RefreshCw, Sparkles } from 'lucide-react';
+import { Menu, RefreshCw, Sparkles, Cpu, Brain } from 'lucide-react';
 import { navigationItems } from './Sidebar';
 import { useSimulation } from '../context/SimulationContext';
 
 export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefreshing, lastUpdated = 'Just now' }) {
-  const { isDemoMode, toggleDemoMode, isLiveBackend, liveWeather } = useSimulation();
+  const {
+    isDemoMode,
+    toggleDemoMode,
+    isLiveBackend,
+    liveWeather,
+    mlMetrics,
+    setIsTrainingModalOpen,
+    setIsCopilotOpen,
+  } = useSimulation();
   const currentItem = navigationItems.find((item) => item.id === activeTab) || navigationItems[0];
+
 
   return (
     <header className="top-navbar">
@@ -47,9 +56,30 @@ export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefres
           </div>
         )}
 
+        {/* Live Retrain ML Button for Hackathon Showcases */}
+        <button
+          className="btn btn-secondary-outline btn-sm"
+          onClick={() => setIsTrainingModalOpen(true)}
+          title="Retrain ML model on live Open-Meteo satellite feed"
+          type="button"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            fontSize: '0.78rem',
+            fontWeight: 700,
+            borderColor: 'rgba(0, 194, 255, 0.4)',
+            color: '#38bdf8',
+          }}
+        >
+          <Cpu size={13} color="#38bdf8" />
+          <span>Retrain ML</span>
+        </button>
+
         {/* Demo Mode Button in Header */}
         <button
           className={`btn ${isDemoMode ? 'btn-primary-glow active' : 'btn-secondary-outline'} btn-sm demo-mode-toggle`}
+
           onClick={toggleDemoMode}
           title={isDemoMode ? 'Click to reset to standard configuration' : 'Activate impressive 100-EV pre-configured scenario'}
           type="button"
@@ -72,7 +102,7 @@ export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefres
             className={`badge ${isLiveBackend ? 'badge-emerald-success' : 'badge-amber-warning'}`}
             style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
           >
-            <span>{isLiveBackend ? 'LIVE API ONLINE' : 'PROTOTYPE MODE'}</span>
+            <span>{isLiveBackend ? 'LIVE API ONLINE' : 'LOCAL EDGE ENGINE'}</span>
           </div>
         )}
 

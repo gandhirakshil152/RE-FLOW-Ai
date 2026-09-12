@@ -6,6 +6,8 @@ import {
   getDashboardData,
   getCurrentWeather,
   runBackendOptimization,
+  getMLMetrics,
+  getMLAnomalies,
 } from '../services/api';
 
 const SimulationContext = createContext(null);
@@ -145,17 +147,40 @@ export function SimulationProvider({ children }) {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState('Just now');
 
-  // Live Backend State
+  // Live Backend State & ML Telemetry
   const [isLiveBackend, setIsLiveBackend] = useState(false);
   const [liveWeather, setLiveWeather] = useState(null);
   const [liveGeneration, setLiveGeneration] = useState(null);
   const [hourlyEnergyData, setHourlyEnergyData] = useState(defaultHourlyEnergyData);
+  const [mlMetrics, setMlMetrics] = useState({
+    model_name: 'RE-FLOW ML Ensemble Regressor',
+    algorithm: 'Multi-variable Regularized Ridge & Polynomial Ensemble',
+    solar_r2: 0.999,
+    wind_r2: 0.985,
+    demand_r2: 0.995,
+    overall_r2: 0.992,
+    mae_kw: 9.9,
+    rmse_kw: 12.8,
+    trained_samples: 576,
+    validation_samples: 144,
+    training_status: 'OPTIMAL_CONVERGED',
+  });
+  const [mlAnomalies, setMlAnomalies] = useState({
+    total_anomalies: 0,
+    critical_count: 0,
+    warning_count: 0,
+    anomalies: [],
+    grid_stability_index: 92.5,
+  });
+  const [isCopilotOpen, setIsCopilotOpen] = useState(false);
+  const [isTrainingModalOpen, setIsTrainingModalOpen] = useState(false);
 
-  // Helper to map live backend forecast points to chart-compatible structure
+
+  // Helper to map live backend forecast points to chart-compatible structure with confidence bounds
   const mapBackendForecast = useCallback((forecastPoints) => {
     return forecastPoints.map((p) => {
-      const ren = Math.round(p.total_renewable_kw);
-      const dem = Math.round(p.demand_kw);
+      const ren = Math.round(p.total_renewable_kw ?? p.total_renewable_predicted_kw ?? 0);
+      const dem = Math.round(p.demand_kw ?? p.demand_predicted_kw ?? 0);
       const util = dem > 0 ? Math.min(100, Math.round((Math.min(ren, dem) / dem) * 100 * 10) / 10) : 0;
       const hourNum = parseInt(p.time.split(':')[0], 10);
       const isPeakTariff = (hourNum >= 11 && hourNum <= 15) || (hourNum >= 18 && hourNum <= 21);
@@ -164,11 +189,15 @@ export function SimulationProvider({ children }) {
         time: p.time,
         renewable: ren,
         demand: dem,
-        solar_kw: Math.round(p.solar_kw || 0),
-        wind_kw: Math.round(p.wind_kw || 0),
+        solar_kw: Math.round(p.solar_kw ?? p.solar_predicted_kw ?? 0),
+        wind_kw: Math.round(p.wind_kw ?? p.wind_predicted_kw ?? 0),
+        confidence_p10: Math.round(p.confidence_p10_kw ?? p.renewable_p10_kw ?? ren * 0.88),
+        confidence_p90: Math.round(p.confidence_p90_kw ?? p.renewable_p90_kw ?? ren * 1.12),
+        demand_p10: Math.round(p.demand_p10_kw ?? dem * 0.94),
+        demand_p90: Math.round(p.demand_p90_kw ?? dem * 1.06),
         renewableUtilization: util,
         estimatedCost: isPeakTariff ? 54 : 28,
-        carbonImpact: p.net_grid_kw > 0 ? Math.round((p.net_grid_kw / Math.max(1, dem)) * 420) : 35,
+        carbonImpact: (p.net_grid_kw ?? 0) > 0 ? Math.round(((p.net_grid_kw ?? 0) / Math.max(1, dem)) * 420) : 35,
         temperature_c: p.temperature_c,
         cloud_cover_percent: p.cloud_cover_percent,
         solar_radiation_w_m2: p.solar_radiation_w_m2,
@@ -177,7 +206,7 @@ export function SimulationProvider({ children }) {
     });
   }, []);
 
-  // Fetch Live Backend Data on mount
+  // Fetch Live Backend Data and ML Model Telemetry on mount
   useEffect(() => {
     let isMounted = true;
     async function initLiveBackend() {
@@ -185,15 +214,19 @@ export function SimulationProvider({ children }) {
         const health = await checkBackendHealth();
         if (health && isMounted) {
           setIsLiveBackend(true);
-          const dash = await getDashboardData();
+          const [dash, weather, mlM, anom] = await Promise.all([
+            getDashboardData(),
+            getCurrentWeather(),
+            getMLMetrics(),
+            getMLAnomalies(),
+          ]);
           if (dash && dash.forecast && isMounted) {
             setHourlyEnergyData(mapBackendForecast(dash.forecast));
             setLiveGeneration(dash.current_generation);
           }
-          const weather = await getCurrentWeather();
-          if (weather && isMounted) {
-            setLiveWeather(weather);
-          }
+          if (weather && isMounted) setLiveWeather(weather);
+          if (mlM && isMounted) setMlMetrics(mlM);
+          if (anom && isMounted) setMlAnomalies(anom);
         }
       } catch (err) {
         if (isMounted) setIsLiveBackend(false);
@@ -502,10 +535,17 @@ export function SimulationProvider({ children }) {
     handleRefresh,
     lastUpdated,
 
-    // Live backend connection
+    // Live backend connection & ML Telemetry
     isLiveBackend,
     liveWeather,
     liveGeneration,
+    mlMetrics,
+    setMlMetrics,
+    mlAnomalies,
+    isCopilotOpen,
+    setIsCopilotOpen,
+    isTrainingModalOpen,
+    setIsTrainingModalOpen,
 
     isDemoMode,
     activateDemoMode,

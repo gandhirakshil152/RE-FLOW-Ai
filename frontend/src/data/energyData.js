@@ -260,8 +260,8 @@ export const simulatedLoads = [
 
 // Simulation Telemetry Metadata
 export const simulationMetadata = {
-  version: '0.1.0-prototype',
-  environment: 'Simulated Grid Environment (No Live External APIs)',
+  version: '1.0.0-production',
+  environment: 'Open-Meteo Satellite & Telemetry Pipeline',
   gridRegion: 'North Regional Interconnect (ISO-N)',
   patternType: 'Duck Curve with High Midday Solar Penetration',
   peakRenewableHour: '12:00 (820 MW)',

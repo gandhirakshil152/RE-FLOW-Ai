@@ -121,3 +121,97 @@ export async function getImpactData() {
   }
   return null;
 }
+
+export async function getMLMetrics() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/ml/metrics`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[RE-FLOW API] ML Metrics API unreachable:', err.message);
+  }
+  return null;
+}
+
+export async function getMLForecast(hours = 24) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/ml/forecast?hours=${hours}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[RE-FLOW API] ML Forecast API unreachable:', err.message);
+  }
+  return null;
+}
+
+export async function getMLAnomalies(hours = 24) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/ml/anomalies?hours=${hours}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[RE-FLOW API] ML Anomalies API unreachable:', err.message);
+  }
+  return null;
+}
+
+export async function askAICopilot(query, context = null) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/ml/ask`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, context }),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[RE-FLOW API] AI Copilot API unreachable:', err.message);
+  }
+  return null;
+}
+
+export async function getScheduleExplanation() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/ml/explain`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[RE-FLOW API] AI Explanation API unreachable:', err.message);
+  }
+  return null;
+}
+
+export async function getCleanEnergyLocations() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/ml/locations`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[RE-FLOW API] Clean Energy Locations API unreachable:', err.message);
+  }
+  return [];
+}
+
+export async function retrainMLModel(payload = {}) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/ml/retrain`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('[RE-FLOW API] Retrain ML API unreachable:', err.message);
+  }
+  return null;
+}
+
+

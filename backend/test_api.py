@@ -171,10 +171,76 @@ async def test_all_endpoints():
         print(f"    Energy Score: {dash_data['energy_score']['score']}/100")
         print(f"    Impact Savings: {dash_data['impact']['cost_saving_percent']}%")
 
+        # 14. ML Model Metrics API
+        print("\n[14] Testing GET /api/ml/metrics...")
+        res_ml = await client.get("/api/ml/metrics")
+        assert res_ml.status_code == 200
+        ml_data = res_ml.json()
+        print(f"    Model: {ml_data['model_name']} ({ml_data['algorithm']})")
+        print(f"    Accuracy: Overall R²={ml_data['overall_r2']}, Solar R²={ml_data['solar_r2']}, Demand R²={ml_data['demand_r2']}")
+        print(f"    Error: MAE={ml_data['mae_kw']} kW, RMSE={ml_data['rmse_kw']} kW")
+        print(f"    Top Feature: {ml_data['feature_importances'][0]['feature']} ({ml_data['feature_importances'][0]['importance'] * 100}%)")
+
+        # 15. ML Probabilistic Forecast API (with P10 - P90 Uncertainty Bands)
+        print("\n[15] Testing GET /api/ml/forecast...")
+        res_ml_f = await client.get("/api/ml/forecast?hours=24")
+        assert res_ml_f.status_code == 200
+        ml_f_data = res_ml_f.json()
+        sample_pt = ml_f_data['forecast'][12]  # Midday
+        print(f"    Forecast points: {len(ml_f_data['forecast'])}, Surplus Window: {ml_f_data['surplus_window']}")
+        print(f"    Midday (12:00) Solar ML Prediction: {sample_pt['solar_predicted_kw']} kW [P10: {sample_pt['solar_p10_kw']} kW, P90: {sample_pt['solar_p90_kw']} kW]")
+        print(f"    Midday Demand ML Prediction: {sample_pt['demand_predicted_kw']} kW [P10: {sample_pt['demand_p10_kw']} kW, P90: {sample_pt['demand_p90_kw']} kW]")
+        assert sample_pt['solar_p10_kw'] <= sample_pt['solar_predicted_kw'] <= sample_pt['solar_p90_kw']
+
+        # 16. ML Real-Time Anomaly Detection API
+        print("\n[16] Testing GET /api/ml/anomalies...")
+        res_anom = await client.get("/api/ml/anomalies")
+        assert res_anom.status_code == 200
+        anom_data = res_anom.json()
+        print(f"    Total Anomalies Detected: {anom_data['total_anomalies']} (Critical: {anom_data['critical_count']})")
+        print(f"    Grid Stability Index: {anom_data['grid_stability_index']}%")
+        if anom_data['anomalies']:
+            top = anom_data['anomalies'][0]
+            print(f"    Sample Anomaly: [{top['severity'].upper()}] {top['title']} (Score: {top['score']})")
+
+        # 17. Explainable AI (XAI) Copilot API
+        print("\n[17] Testing POST /api/ml/ask & GET /api/ml/explain...")
+        res_ask = await client.post("/api/ml/ask", json={"query": "Why was the EV fleet moved to 1:00 PM?"})
+        assert res_ask.status_code == 200
+        copilot_data = res_ask.json()
+        print(f"    Copilot Source: {copilot_data['source']}, Confidence: {copilot_data['model_confidence'] * 100}%")
+        print(f"    Answer: {copilot_data['answer'][:120]}...")
+        print(f"    Action: {copilot_data['suggested_actions'][0]}")
+
+        res_exp = await client.get("/api/ml/explain")
+        assert res_exp.status_code == 200
+
+        # 18. Clean Energy Locations API
+        print("\n[18] Testing GET /api/ml/locations...")
+        res_loc = await client.get("/api/ml/locations")
+        assert res_loc.status_code == 200
+        locs = res_loc.json()
+        print(f"    Available Clean Tech Hubs: {len(locs)}")
+        for l in locs:
+            print(f"      - {l['name']} ({l['region']}): Solar={l['solar_capacity_kw']} kW, Wind={l['wind_capacity_kw']} kW")
+
+        # 19. Live Satellite Model Retraining API
+        print("\n[19] Testing POST /api/ml/retrain on real Open-Meteo satellite feed...")
+        res_retrain = await client.post("/api/ml/retrain", json={"past_days": 7, "location_name": "Gandhinagar Clean Tech Corridor"})
+        assert res_retrain.status_code == 200
+        retrain_data = res_retrain.json()
+        print(f"    Status: {retrain_data['status']}")
+        print(f"    Source: {retrain_data['data_source']}")
+        print(f"    Samples Used: {retrain_data['samples_used']} real hourly records (Duration: {retrain_data['training_duration_ms']} ms)")
+        print(f"    Updated Model Accuracy: Overall R²={retrain_data['overall_r2']}, Solar R²={retrain_data['solar_r2']}, Demand R²={retrain_data['demand_r2']}")
+        print(f"    Loss Convergence: {retrain_data['loss_history'][0]} -> {retrain_data['loss_history'][-1]}")
+
     print("\n==================================================")
-    print("   ALL 13 VERIFICATION TESTS PASSED SUCCESSFULLY! ")
+    print("   ALL 19 VERIFICATION TESTS PASSED SUCCESSFULLY! ")
     print("==================================================")
 
 
 if __name__ == "__main__":
     asyncio.run(test_all_endpoints())
+
+

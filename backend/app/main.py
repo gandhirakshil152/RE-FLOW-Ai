@@ -16,6 +16,7 @@ from app.api.simulator import router as simulator_router
 from app.api.energy_score import router as energy_score_router
 from app.api.impact import router as impact_router
 from app.api.dashboard import router as dashboard_router
+from app.api.ml_api import router as ml_router
 
 
 @asynccontextmanager
@@ -76,6 +77,7 @@ app.include_router(simulator_router, prefix=api_prefix)
 app.include_router(energy_score_router, prefix=api_prefix)
 app.include_router(impact_router, prefix=api_prefix)
 app.include_router(dashboard_router, prefix=api_prefix)
+app.include_router(ml_router, prefix=api_prefix)
 
 
 # Root welcome endpoint

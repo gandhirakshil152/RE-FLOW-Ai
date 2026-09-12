@@ -4,15 +4,7 @@ from app.schemas.forecast import ForecastDataPoint, ForecastResponse
 from app.services.weather_service import WeatherService
 from app.services.renewable_service import RenewableService
 from app.services.demand_service import DemandService
-
-
-class MLForecastModelInterface:
-    """
-    Interface for integrating advanced ML forecast backends:
-    XGBoost, LightGBM, and PyTorch/LSTM.
-    """
-    def predict(self, weather_features: List[dict]) -> List[float]:
-        raise NotImplementedError
+from app.services.ml_service import MLService
 
 
 class ForecastService:
@@ -22,11 +14,11 @@ class ForecastService:
         latitude: float = settings.DEFAULT_LATITUDE,
         longitude: float = settings.DEFAULT_LONGITUDE,
         hours: int = 24,
-        ml_model: Optional[MLForecastModelInterface] = None,
     ) -> ForecastResponse:
         """
         Combines weather, solar generation, wind generation, and facility demand
-        into an aligned multi-variable hourly forecast time series for 24-72 hours.
+        into an aligned multi-variable hourly forecast time series for 24-72 hours,
+        enriched with ML uncertainty confidence intervals (P10 - P90) and model telemetry.
         """
         clamped_hours = min(max(hours, 12), 72)
 
@@ -36,6 +28,10 @@ class ForecastService:
         renewable_resp = await RenewableService.get_renewable_forecast(latitude, longitude, hours=clamped_hours)
         # 3. Demand forecast
         demand_resp = DemandService.get_demand_forecast(hours=clamped_hours)
+        # 4. ML probabilistic forecast
+        ml_service = MLService.get_instance()
+        ml_forecast = await ml_service.predict_forecast(latitude, longitude, hours=clamped_hours)
+        ml_map = {p.time: p for p in ml_forecast.forecast}
 
         weather_map = {p.time: p for p in weather_resp.hourly}
         renewable_map = {p.time: p for p in renewable_resp.forecast}
@@ -46,10 +42,11 @@ class ForecastService:
             t = d_pt.time
             r_pt = renewable_map.get(t)
             w_pt = weather_map.get(t)
+            m_pt = ml_map.get(t)
 
-            solar_kw = r_pt.solar_generation_kw if r_pt else 0.0
-            wind_kw = r_pt.wind_generation_kw if r_pt else 0.0
-            total_ren_kw = r_pt.total_renewable_kw if r_pt else 0.0
+            solar_kw = r_pt.solar_generation_kw if r_pt else (m_pt.solar_predicted_kw if m_pt else 0.0)
+            wind_kw = r_pt.wind_generation_kw if r_pt else (m_pt.wind_predicted_kw if m_pt else 0.0)
+            total_ren_kw = r_pt.total_renewable_kw if r_pt else (m_pt.total_renewable_predicted_kw if m_pt else 0.0)
             demand_kw = d_pt.demand_kw
 
             # Net grid imported vs surplus clean power
@@ -70,10 +67,19 @@ class ForecastService:
                     cloud_cover_percent=w_pt.cloud_cover_percent if w_pt else 10.0,
                     solar_radiation_w_m2=w_pt.solar_radiation_w_m2 if w_pt else 0.0,
                     wind_speed_m_s=w_pt.wind_speed_m_s if w_pt else 4.0,
+                    confidence_p10_kw=m_pt.renewable_p10_kw if m_pt else round(total_ren_kw * 0.85, 1),
+                    confidence_p90_kw=m_pt.renewable_p90_kw if m_pt else round(total_ren_kw * 1.15, 1),
+                    demand_p10_kw=m_pt.demand_p10_kw if m_pt else round(demand_kw * 0.92, 1),
+                    demand_p90_kw=m_pt.demand_p90_kw if m_pt else round(demand_kw * 1.08, 1),
                 )
             )
 
+        metrics = ml_service.get_metrics()
         return ForecastResponse(
             forecast_hours=len(combined_points),
             forecast=combined_points,
+            model_name=metrics.model_name,
+            r2_score=metrics.overall_r2,
+            mae_kw=metrics.mae_kw,
         )
+

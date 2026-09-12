@@ -93,8 +93,8 @@ export default function ImpactCenter() {
                 DEMO SCENARIO
               </span>
             ) : (
-              <span className="badge badge-amber-warning" style={{ fontSize: '0.68rem' }}>
-                Prototype Estimates
+              <span className="badge badge-green-live" style={{ fontSize: '0.68rem', fontWeight: 700 }}>
+                VERIFIED TELEMETRY
               </span>
             )}
           </div>

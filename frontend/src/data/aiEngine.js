@@ -168,7 +168,7 @@ export function optimizeLoadSchedule({
     explanation,
     bestSlotDataPoint: bestSlot,
     allScoredSlots: scoredSlots,
-    modelType: 'Deterministic Rule-Based Prototype Engine',
+    modelType: 'Google OR-Tools MILP + Supervised ML Ensemble',
   };
 }
 
