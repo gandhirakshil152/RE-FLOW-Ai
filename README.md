@@ -8,18 +8,16 @@
 [![Vite 6](https://img.shields.io/badge/Vite-6.0-646CFF.svg?style=flat&logo=vite&logoColor=white)](https://vitejs.dev)
 [![Google OR-Tools](https://img.shields.io/badge/Google_OR--Tools-MILP_Solver-4285F4.svg?style=flat&logo=google&logoColor=white)](https://developers.google.com/optimization)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
-[![Tests Passing](https://img.shields.io/badge/API_Verification-19%2F19_Passed-10B981.svg?style=flat)](#end-to-end-verification--test-suite)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## ⚡ 01 Predict · 02 Shift · 03 Optimize · 04 Save
+## 01 Predict · 02 Shift · 03 Optimize · 04 Save
 
 **RE-FLOW AI** turns static energy monitoring into an automated, proactive load-shifting engine. It eliminates the renewable mismatch paradox by taking tomorrow's weather and generation forecasts and converting them into today's mathematically optimal operating schedules for factories, commercial towers, EV fleets, data centers, and battery storage units (BESS).
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents
 
 - [Executive Summary](#-executive-summary)
   - [The Renewable Mismatch Paradox (The Duck Curve)](#the-renewable-mismatch-paradox-the-duck-curve)
@@ -47,7 +45,7 @@
 
 ---
 
-## 💡 Executive Summary
+## Executive Summary
 
 ### The Renewable Mismatch Paradox (The Duck Curve)
 Most clean-energy software asks users to simply *consume less*. RE-FLOW AI solves the fundamental structural paradox of renewable grids instead:
@@ -78,7 +76,7 @@ Rather than shutting down production or compromising delivery deadlines, RE-FLOW
 
 ---
 
-## 🔄 How It Works: Move Demand Into The Solar Window
+## How It Works: Move Demand Into The Solar Window
 
 ### 24-Hour Grid Profile & Shifting Dynamics
 
@@ -102,17 +100,17 @@ Power (kW)
 
 | Sector | Standard Operation | RE-FLOW AI Optimized | Clean Energy Gain |
 |:---|:---:|:---:|:---:|
-| 🏭 **Factories & Heavy Industry** | `38%` | **`76%`** | **`+38 pts`** |
-| 🚚 **EV Fleet Depots & Charging Hubs** | `25%` | **`88%`** | **`+63 pts`** |
-| 🏢 **Commercial Office Towers** | `42%` | **`79%`** | **`+37 pts`** |
-| 🖥️ **Data Centers & Compute Clusters** | `35%` | **`84%`** | **`+49 pts`** |
-| 🌐 **Islanded & Grid-Tied Microgrids** | `52%` | **`94%`** | **`+42 pts`** |
+| **Factories & Heavy Industry** | `38%` | **`76%`** | **`+38 pts`** |
+| **EV Fleet Depots & Charging Hubs** | `25%` | **`88%`** | **`+63 pts`** |
+| **Commercial Office Towers** | `42%` | **`79%`** | **`+37 pts`** |
+| **Data Centers & Compute Clusters** | `35%` | **`84%`** | **`+49 pts`** |
+| **Islanded & Grid-Tied Microgrids** | `52%` | **`94%`** | **`+42 pts`** |
 
 *EV fleet depots see the highest jump (+63 pts) because vehicular battery charging has the widest flexibility window of any commercial load.*
 
 ---
 
-## 🔌 Six Real-World Application Verticals
+## Six Real-World Application Verticals
 
 ```mermaid
 mindmap
@@ -153,7 +151,7 @@ mindmap
 
 ---
 
-## 🏗️ Software Architecture (01 to 06 Stack)
+## Software Architecture (01 to 06 Stack)
 
 RE-FLOW AI is engineered as an enterprise-grade, cloud-native microservices architecture with low-latency edge connectivity:
 
@@ -270,7 +268,7 @@ $$\min_{\mathbf{x}, \mathbf{y}, \mathbf{G}, \mathbf{S}, P_{\max}} \sum_{t=0}^{23
 
 ---
 
-## 🏆 Why RE-FLOW AI Wins: The Value Matrix
+## Why RE-FLOW AI Wins: The Value Matrix
 
 Its core advantage is **pragmatism: sustainability without disruption**—no operational shutdowns, no sacrifices, just better timing.
 
@@ -288,7 +286,7 @@ Its core advantage is **pragmatism: sustainability without disruption**—no ope
 
 ---
 
-## 📂 Project Directory Structure
+## Project Directory Structure
 
 ```
 re-flow-ai/
@@ -362,7 +360,7 @@ re-flow-ai/
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Prerequisites
 - **Python**: `3.10` or higher (tested on `Python 3.12`)
@@ -463,7 +461,7 @@ The backend exposes a comprehensive RESTful API documented via OpenAPI:
 
 ---
 
-## 🧪 End-to-End Verification & Test Suite
+## End-to-End Verification & Test Suite
 
 The entire backend API and mathematical optimization pipeline can be validated in under 3 seconds using the automated verification suite:
 
@@ -503,7 +501,7 @@ python backend/test_api.py
 
 ---
 
-## 👥 Contributors & License
+## Contributors & License
 
 - **Project**: RE-FLOW AI
 - **Track**: AI for Clean Energy & Smart Grids
