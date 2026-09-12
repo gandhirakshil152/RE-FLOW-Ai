@@ -42,22 +42,9 @@ export async function getCurrentWeather(lat = 23.2156, lon = 72.6369) {
   return null;
 }
 
-export async function getForecastData(params = 24) {
+export async function getForecastData(hours = 24) {
   try {
-    let query = '';
-    if (typeof params === 'number') {
-      query = `?hours=${params}`;
-    } else if (params && typeof params === 'object') {
-      const q = new URLSearchParams();
-      if (params.date) q.append('date', params.date);
-      if (params.days) q.append('days', params.days);
-      if (params.hours) q.append('hours', params.hours);
-      if (params.latitude) q.append('latitude', params.latitude);
-      if (params.longitude) q.append('longitude', params.longitude);
-      const s = q.toString();
-      if (s) query = `?${s}`;
-    }
-    const res = await fetch(`${API_BASE_URL}/api/forecast${query}`);
+    const res = await fetch(`${API_BASE_URL}/api/forecast?hours=${hours}`);
     if (res.ok) {
       return await res.json();
     }
@@ -66,7 +53,6 @@ export async function getForecastData(params = 24) {
   }
   return null;
 }
-
 
 export async function getLoads() {
   try {
@@ -148,22 +134,9 @@ export async function getMLMetrics() {
   return null;
 }
 
-export async function getMLForecast(params = 24) {
+export async function getMLForecast(hours = 24) {
   try {
-    let query = '';
-    if (typeof params === 'number') {
-      query = `?hours=${params}`;
-    } else if (params && typeof params === 'object') {
-      const q = new URLSearchParams();
-      if (params.date) q.append('date', params.date);
-      if (params.days) q.append('days', params.days);
-      if (params.hours) q.append('hours', params.hours);
-      if (params.latitude) q.append('latitude', params.latitude);
-      if (params.longitude) q.append('longitude', params.longitude);
-      const s = q.toString();
-      if (s) query = `?${s}`;
-    }
-    const res = await fetch(`${API_BASE_URL}/api/ml/forecast${query}`);
+    const res = await fetch(`${API_BASE_URL}/api/ml/forecast?hours=${hours}`);
     if (res.ok) {
       return await res.json();
     }
@@ -172,7 +145,6 @@ export async function getMLForecast(params = 24) {
   }
   return null;
 }
-
 
 export async function getMLAnomalies(hours = 24) {
   try {

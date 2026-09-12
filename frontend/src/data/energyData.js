@@ -2,89 +2,207 @@
  * RE-FLOW AI — Simulated Data Layer
  * 
  * PROTOTYPE / SYNTHETIC DATASET:
- * Multi-day 16-day simulated energy availability, grid demand, and flexible loads
- * starting from current date through 15 days ahead (384 hours).
- * Illustrates the classic renewable supply-demand mismatch with date selection.
+ * Realistic 24-hour simulated energy availability, grid demand, and flexible loads.
+ * Illustrates the classic renewable supply-demand mismatch (solar midday surplus vs evening peak deficit).
+ * 
+ * Note: No live APIs connected. All numbers represent synthetic prototype simulation.
  */
 
-export const getTodayDateString = () => {
-  const d = new Date();
-  const yr = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${yr}-${mo}-${day}`;
-};
-
-export const generateMultiDayEnergyData = (daysCount = 16) => {
-  const data = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  for (let dayOffset = 0; dayOffset < daysCount; dayOffset++) {
-    const currentDay = new Date(today);
-    currentDay.setDate(today.getDate() + dayOffset);
-    const dateStr = currentDay.toISOString().split('T')[0];
-
-    // Day variation factors
-    const weatherFactor = 0.85 + 0.3 * Math.sin(dayOffset * 1.7);
-    const demandFactor = 0.9 + 0.2 * Math.cos(dayOffset * 1.3);
-
-    for (let h = 0; h < 24; h++) {
-      const timeStr = `${String(h).padStart(2, '0')}:00`;
-      const timestampStr = `${dateStr}T${timeStr}`;
-
-      // Solar profile
-      let solar = 0;
-      if (h >= 6 && h <= 18) {
-        const angle = Math.sin(((h - 6) * Math.PI) / 12);
-        solar = Math.round(750 * Math.pow(Math.max(0, angle), 1.2) * weatherFactor);
-      }
-      // Wind profile
-      const wind = Math.round(180 + 90 * Math.sin(((h - 3) * Math.PI) / 12) + (dayOffset % 3) * 20);
-      const totalRen = solar + wind;
-
-      // Demand profile
-      let dem = 250;
-      if (h >= 6 && h < 9) dem = 350 + (h - 6) * 90;
-      else if (h >= 9 && h < 17) dem = 620 + Math.round(170 * Math.sin(((h - 9) * Math.PI) / 8));
-      else if (h >= 17 && h < 21) dem = 540 + (21 - h) * 25;
-      else dem = 270;
-      dem = Math.round(dem * demandFactor);
-
-      const isPeakTariff = (h >= 11 && h <= 15) || (h >= 18 && h <= 21);
-      const util = dem > 0 ? Math.min(100, Math.round((Math.min(totalRen, dem) / dem) * 100 * 10) / 10) : 0;
-      const netGrid = Math.max(0, dem - totalRen);
-
-      data.push({
-        date: dateStr,
-        time: timeStr,
-        timestamp: timestampStr,
-        renewable: totalRen,
-        demand: dem,
-        solar_kw: solar,
-        wind_kw: wind,
-        confidence_p10: Math.round(totalRen * 0.86),
-        confidence_p90: Math.round(totalRen * 1.14),
-        demand_p10: Math.round(dem * 0.94),
-        demand_p90: Math.round(dem * 1.06),
-        renewableUtilization: util,
-        estimatedCost: isPeakTariff ? 54 : 28,
-        carbonImpact: netGrid > 0 ? Math.round((netGrid / Math.max(1, dem)) * 420) : 45,
-        temperature_c: Math.round((24 + 8 * Math.sin(((h - 8) * Math.PI) / 12)) * 10) / 10,
-        cloud_cover_percent: Math.round(15 + 25 * (1 - weatherFactor)),
-        solar_radiation_w_m2: Math.round(solar * 1.2),
-        wind_speed_m_s: Math.round((3 + wind / 60) * 10) / 10,
-      });
-    }
+// 24-Hour Hourly Energy Availability & Demand Telemetry
+export const hourlyEnergyData = [
+  {
+    time: '00:00',
+    renewable: 190, // MW (Wind only)
+    demand: 270,    // MW
+    renewableUtilization: 70.4, // %
+    estimatedCost: 38,          // $/MWh
+    carbonImpact: 310           // gCO2/kWh
+  },
+  {
+    time: '01:00',
+    renewable: 210,
+    demand: 255,
+    renewableUtilization: 82.4,
+    estimatedCost: 35,
+    carbonImpact: 295
+  },
+  {
+    time: '02:00',
+    renewable: 230,
+    demand: 245,
+    renewableUtilization: 93.9,
+    estimatedCost: 32,
+    carbonImpact: 280
+  },
+  {
+    time: '03:00',
+    renewable: 240,
+    demand: 240,
+    renewableUtilization: 100.0,
+    estimatedCost: 30,
+    carbonImpact: 265
+  },
+  {
+    time: '04:00',
+    renewable: 235,
+    demand: 250,
+    renewableUtilization: 94.0,
+    estimatedCost: 34,
+    carbonImpact: 275
+  },
+  {
+    time: '05:00',
+    renewable: 220,
+    demand: 285,
+    renewableUtilization: 77.2,
+    estimatedCost: 44,
+    carbonImpact: 315
+  },
+  {
+    time: '06:00',
+    renewable: 260, // Dawn: Solar begins
+    demand: 340,
+    renewableUtilization: 76.5,
+    estimatedCost: 52,
+    carbonImpact: 300
+  },
+  {
+    time: '07:00',
+    renewable: 340,
+    demand: 395,
+    renewableUtilization: 86.1,
+    estimatedCost: 58,
+    carbonImpact: 270
+  },
+  {
+    time: '08:00',
+    renewable: 460,
+    demand: 440,
+    renewableUtilization: 100.0,
+    estimatedCost: 48,
+    carbonImpact: 220
+  },
+  {
+    time: '09:00',
+    renewable: 580,
+    demand: 465,
+    renewableUtilization: 100.0,
+    estimatedCost: 36,
+    carbonImpact: 175
+  },
+  {
+    time: '10:00',
+    renewable: 680,
+    demand: 475,
+    renewableUtilization: 100.0,
+    estimatedCost: 28,
+    carbonImpact: 145
+  },
+  {
+    time: '11:00',
+    renewable: 760, // High solar surplus
+    demand: 480,
+    renewableUtilization: 100.0,
+    estimatedCost: 22,
+    carbonImpact: 120
+  },
+  {
+    time: '12:00', // Midday solar peak: Highest clean surplus
+    renewable: 820,
+    demand: 485,
+    renewableUtilization: 100.0,
+    estimatedCost: 18,
+    carbonImpact: 98
+  },
+  {
+    time: '13:00',
+    renewable: 800,
+    demand: 490,
+    renewableUtilization: 100.0,
+    estimatedCost: 20,
+    carbonImpact: 105
+  },
+  {
+    time: '14:00',
+    renewable: 740,
+    demand: 495,
+    renewableUtilization: 100.0,
+    estimatedCost: 24,
+    carbonImpact: 125
+  },
+  {
+    time: '15:00',
+    renewable: 630,
+    demand: 510,
+    renewableUtilization: 100.0,
+    estimatedCost: 32,
+    carbonImpact: 160
+  },
+  {
+    time: '16:00', // Solar ramps down
+    renewable: 480,
+    demand: 535,
+    renewableUtilization: 89.7,
+    estimatedCost: 48,
+    carbonImpact: 215
+  },
+  {
+    time: '17:00',
+    renewable: 340,
+    demand: 580,
+    renewableUtilization: 58.6,
+    estimatedCost: 75,
+    carbonImpact: 290
+  },
+  {
+    time: '18:00', // Evening peak begins: Renewable drops, demand spikes
+    renewable: 260,
+    demand: 630,
+    renewableUtilization: 41.3,
+    estimatedCost: 112,
+    carbonImpact: 395
+  },
+  {
+    time: '19:00', // Maximum evening peak mismatch
+    renewable: 270,
+    demand: 645,
+    renewableUtilization: 41.9,
+    estimatedCost: 125,
+    carbonImpact: 415
+  },
+  {
+    time: '20:00',
+    renewable: 280,
+    demand: 610,
+    renewableUtilization: 45.9,
+    estimatedCost: 108,
+    carbonImpact: 390
+  },
+  {
+    time: '21:00',
+    renewable: 270,
+    demand: 540,
+    renewableUtilization: 50.0,
+    estimatedCost: 82,
+    carbonImpact: 360
+  },
+  {
+    time: '22:00',
+    renewable: 250,
+    demand: 440,
+    renewableUtilization: 56.8,
+    estimatedCost: 58,
+    carbonImpact: 335
+  },
+  {
+    time: '23:00',
+    renewable: 220,
+    demand: 340,
+    renewableUtilization: 64.7,
+    estimatedCost: 44,
+    carbonImpact: 320
   }
-  return data;
-};
-
-export const multiDayEnergyData = generateMultiDayEnergyData(16);
-
-// 24-Hour Hourly Energy Availability & Demand Telemetry (Day 0 / Today)
-export const hourlyEnergyData = multiDayEnergyData.slice(0, 24);
-
+];
 
 // Simulated Flexible Electricity Loads
 export const simulatedLoads = [

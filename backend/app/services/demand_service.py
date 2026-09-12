@@ -1,6 +1,6 @@
 import math
 from datetime import datetime, timedelta, timezone
-from typing import List, Optional
+from typing import List
 from app.core.config import settings
 from app.schemas.demand import (
     DemandPoint,
@@ -47,27 +47,15 @@ class DemandService:
         return round(max(cls.BASE_LOAD_KW, demand + variation), 1)
 
     @classmethod
-    @classmethod
-    def get_demand_forecast(
-        cls,
-        hours: Optional[int] = None,
-        days: int = 16,
-        target_date: Optional[str] = None,
-    ) -> DemandForecastResponse:
-        """Generates future predicted demand up to 16 days (384 hours) with date specification and filtering."""
+    def get_demand_forecast(cls, hours: int = 24) -> DemandForecastResponse:
+        """Generates future predicted demand for the next 24-72 hours."""
         now = datetime.now(timezone.utc)
         start_hour = now.replace(minute=0, second=0, microsecond=0)
-
-        # Max 16 days (current date + 15 days) = 384 hours
-        if hours is not None:
-            total_hours = min(384, max(1, hours))
-        else:
-            total_hours = min(384, max(1, days * 24))
 
         points: List[DemandPoint] = []
         max_peak = 0.0
 
-        for h in range(total_hours):
+        for h in range(hours):
             t = start_hour + timedelta(hours=h)
             hour_of_day = t.hour
             predicted_kw = cls.calculate_facility_demand(hour_of_day, day_offset=h // 24)
@@ -78,7 +66,6 @@ class DemandService:
 
             points.append(
                 DemandPoint(
-                    date=t.strftime("%Y-%m-%d"),
                     timestamp=t.strftime("%Y-%m-%dT%H:00"),
                     time=f"{hour_of_day:02d}:00",
                     demand_kw=predicted_kw,
@@ -87,25 +74,12 @@ class DemandService:
                 )
             )
 
-        available_dates = sorted(list(dict.fromkeys(p.date for p in points)))[:16]
-        valid_date_set = set(available_dates)
-        points = [p for p in points if p.date in valid_date_set]
-
-        if target_date:
-            filtered_points = [p for p in points if p.date == target_date]
-            selected_date = target_date
-        else:
-            filtered_points = points
-            selected_date = None
-
         return DemandForecastResponse(
             facility_name=cls.FACILITY_NAME,
-            forecast_hours=len(filtered_points),
+            forecast_hours=hours,
             baseline_demand_kw=cls.BASE_LOAD_KW,
-            predicted_peak_demand_kw=max((p.demand_kw for p in filtered_points), default=max_peak),
-            forecast=filtered_points,
-            selected_date=selected_date,
-            available_dates=available_dates,
+            predicted_peak_demand_kw=max_peak,
+            forecast=points,
         )
 
     @classmethod
@@ -130,7 +104,6 @@ class DemandService:
 
             points.append(
                 DemandPoint(
-                    date=t.strftime("%Y-%m-%d"),
                     timestamp=t.strftime("%Y-%m-%dT%H:00"),
                     time=f"{hour_of_day:02d}:00",
                     demand_kw=actual_kw,
@@ -140,7 +113,6 @@ class DemandService:
             )
 
         avg_demand = round(total_demand / max(1, len(points)), 1)
-        available_dates = sorted(list(dict.fromkeys(p.date for p in points)))
 
         return DemandHistoryResponse(
             facility_name=cls.FACILITY_NAME,
@@ -149,9 +121,7 @@ class DemandService:
             peak_demand_kw=peak_demand,
             baseline_kw=cls.BASE_LOAD_KW,
             history=points,
-            available_dates=available_dates,
         )
-
 
     @classmethod
     def get_current_demand(cls) -> DemandCurrentResponse:

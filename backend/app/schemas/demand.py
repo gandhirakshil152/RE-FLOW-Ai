@@ -3,7 +3,6 @@ from pydantic import BaseModel
 
 
 class DemandPoint(BaseModel):
-    date: str
     timestamp: str
     time: str
     demand_kw: float
@@ -26,8 +25,6 @@ class DemandHistoryResponse(BaseModel):
     peak_demand_kw: float
     baseline_kw: float
     history: List[DemandPoint]
-    selected_date: Optional[str] = None
-    available_dates: List[str] = []
 
 
 class DemandForecastResponse(BaseModel):
@@ -36,6 +33,3 @@ class DemandForecastResponse(BaseModel):
     baseline_demand_kw: float
     predicted_peak_demand_kw: float
     forecast: List[DemandPoint]
-    selected_date: Optional[str] = None
-    available_dates: List[str] = []
-

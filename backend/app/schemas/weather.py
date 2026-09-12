@@ -15,7 +15,6 @@ class WeatherCurrent(BaseModel):
 
 
 class WeatherHourlyPoint(BaseModel):
-    date: str
     time: str
     timestamp: str
     temperature_c: float
@@ -32,6 +31,3 @@ class WeatherForecastResponse(BaseModel):
     current: WeatherCurrent
     hourly: List[WeatherHourlyPoint]
     forecast_hours: int = 24
-    selected_date: Optional[str] = None
-    available_dates: List[str] = []
-

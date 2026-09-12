@@ -1,16 +1,9 @@
 import React, { createContext, useContext, useState, useMemo, useCallback, useEffect } from 'react';
-import {
-  hourlyEnergyData as defaultHourlyEnergyData,
-  multiDayEnergyData,
-  getTodayDateString,
-  simulatedLoads,
-  simulationMetadata,
-} from '../data/energyData';
+import { hourlyEnergyData as defaultHourlyEnergyData, simulatedLoads, simulationMetadata } from '../data/energyData';
 import { optimizeLoadSchedule } from '../data/aiEngine';
 import {
   checkBackendHealth,
   getDashboardData,
-  getForecastData,
   getCurrentWeather,
   runBackendOptimization,
   getMLMetrics,
@@ -18,7 +11,6 @@ import {
 } from '../services/api';
 
 const SimulationContext = createContext(null);
-
 
 // Pure calculation for the What-If Simulator
 export function calculateSimulation(evCount, startTime, kwhPerEV, scen) {
@@ -159,25 +151,7 @@ export function SimulationProvider({ children }) {
   const [isLiveBackend, setIsLiveBackend] = useState(false);
   const [liveWeather, setLiveWeather] = useState(null);
   const [liveGeneration, setLiveGeneration] = useState(null);
-
-  // Multi-day Forecast & Selected Date State (Current date through +15 days)
-  const [selectedDate, setSelectedDate] = useState(() => {
-    return defaultHourlyEnergyData[0]?.date || getTodayDateString();
-  });
-  const [allForecastData, setAllForecastData] = useState(multiDayEnergyData);
-  const [availableDates, setAvailableDates] = useState(() => {
-    const dates = Array.from(new Set(multiDayEnergyData.map((d) => d.date)));
-    return dates.slice(0, 16);
-  });
-
-  // Current 24-hour slice matching selectedDate
-  const hourlyEnergyData = useMemo(() => {
-    if (!allForecastData || allForecastData.length === 0) return defaultHourlyEnergyData;
-    const forDate = allForecastData.filter((d) => d.date === selectedDate);
-    if (forDate.length > 0) return forDate;
-    return allForecastData.slice(0, 24);
-  }, [allForecastData, selectedDate]);
-
+  const [hourlyEnergyData, setHourlyEnergyData] = useState(defaultHourlyEnergyData);
   const [mlMetrics, setMlMetrics] = useState({
     model_name: 'RE-FLOW ML Ensemble Regressor',
     algorithm: 'Multi-variable Regularized Ridge & Polynomial Ensemble',
@@ -210,12 +184,9 @@ export function SimulationProvider({ children }) {
       const util = dem > 0 ? Math.min(100, Math.round((Math.min(ren, dem) / dem) * 100 * 10) / 10) : 0;
       const hourNum = parseInt(p.time.split(':')[0], 10);
       const isPeakTariff = (hourNum >= 11 && hourNum <= 15) || (hourNum >= 18 && hourNum <= 21);
-      const datePart = p.date || (p.timestamp ? p.timestamp.split('T')[0] : getTodayDateString());
 
       return {
-        date: datePart,
         time: p.time,
-        timestamp: p.timestamp,
         renewable: ren,
         demand: dem,
         solar_kw: Math.round(p.solar_kw ?? p.solar_predicted_kw ?? 0),
@@ -243,25 +214,14 @@ export function SimulationProvider({ children }) {
         const health = await checkBackendHealth();
         if (health && isMounted) {
           setIsLiveBackend(true);
-          const [dash, fc16, weather, mlM, anom] = await Promise.all([
+          const [dash, weather, mlM, anom] = await Promise.all([
             getDashboardData(),
-            getForecastData({ days: 16 }),
             getCurrentWeather(),
             getMLMetrics(),
             getMLAnomalies(),
           ]);
-          if (fc16 && fc16.forecast && isMounted) {
-            const mapped16 = mapBackendForecast(fc16.forecast);
-            setAllForecastData(mapped16);
-            if (fc16.available_dates && fc16.available_dates.length > 0) {
-              setAvailableDates(fc16.available_dates);
-              setSelectedDate((prev) => (fc16.available_dates.includes(prev) ? prev : fc16.available_dates[0]));
-            }
-          } else if (dash && dash.forecast && isMounted) {
-            const mapped = mapBackendForecast(dash.forecast);
-            setAllForecastData(mapped);
-          }
-          if (dash && dash.current_generation && isMounted) {
+          if (dash && dash.forecast && isMounted) {
+            setHourlyEnergyData(mapBackendForecast(dash.forecast));
             setLiveGeneration(dash.current_generation);
           }
           if (weather && isMounted) setLiveWeather(weather);
@@ -275,7 +235,6 @@ export function SimulationProvider({ children }) {
     initLiveBackend();
     return () => { isMounted = false; };
   }, [mapBackendForecast]);
-
 
   // What-If Simulator Inputs
   const [simulatorParams, setSimulatorParams] = useState({
@@ -439,25 +398,13 @@ export function SimulationProvider({ children }) {
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      const [dash, fc16, weather] = await Promise.all([
-        getDashboardData(),
-        getForecastData({ days: 16 }),
-        getCurrentWeather(),
-      ]);
-      if (fc16 && fc16.forecast) {
+      const dash = await getDashboardData();
+      if (dash && dash.forecast) {
         setIsLiveBackend(true);
-        const mapped16 = mapBackendForecast(fc16.forecast);
-        setAllForecastData(mapped16);
-        if (fc16.available_dates && fc16.available_dates.length > 0) {
-          setAvailableDates(fc16.available_dates);
-        }
-      } else if (dash && dash.forecast) {
-        setIsLiveBackend(true);
-        setAllForecastData(mapBackendForecast(dash.forecast));
-      }
-      if (dash && dash.current_generation) {
+        setHourlyEnergyData(mapBackendForecast(dash.forecast));
         setLiveGeneration(dash.current_generation);
       }
+      const weather = await getCurrentWeather();
       if (weather) {
         setLiveWeather(weather);
       }
@@ -472,7 +419,7 @@ export function SimulationProvider({ children }) {
   // Shared Impact Metrics
   const latestImpactMetrics = useMemo(() => {
     const hasSchedulerRun = schedulerState.hasOptimized && schedulerState.optimizationResult;
-    
+
     const costSaving = hasSchedulerRun
       ? schedulerState.optimizationResult.costSavings
       : `₹${simulatorResult.netSavingsINR.toLocaleString()}`;
@@ -600,12 +547,6 @@ export function SimulationProvider({ children }) {
     isTrainingModalOpen,
     setIsTrainingModalOpen,
 
-    // Multi-day Date Specification & Selection
-    selectedDate,
-    setSelectedDate,
-    availableDates,
-    allForecastData,
-
     isDemoMode,
     activateDemoMode,
     deactivateDemoMode,
@@ -625,7 +566,6 @@ export function SimulationProvider({ children }) {
 
     latestImpactMetrics,
   };
-
 
   return (
     <SimulationContext.Provider value={value}>

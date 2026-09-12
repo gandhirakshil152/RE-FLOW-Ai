@@ -1,6 +1,6 @@
 import math
 from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import httpx
 from app.core.config import settings
 from app.schemas.weather import WeatherCurrent, WeatherHourlyPoint, WeatherForecastResponse
@@ -43,12 +43,12 @@ class WeatherService:
                 "wind_speed_10m",
                 "weather_code",
             ],
-            "forecast_days": min(max(forecast_days, 1), 16),
+            "forecast_days": min(max(forecast_days, 1), 7),
             "timezone": "auto",
         }
 
         try:
-            async with httpx.AsyncClient(timeout=6.0) as client:
+            async with httpx.AsyncClient(timeout=3.0) as client:
                 response = await client.get(cls.BASE_URL, params=params)
                 if response.status_code == 200:
                     data = response.json()
@@ -60,11 +60,10 @@ class WeatherService:
             # Fall back to high-accuracy solar physics model
             pass
 
-        fallback = cls._generate_fallback_weather(latitude, longitude, min(forecast_days, 16))
+        fallback = cls._generate_fallback_weather(latitude, longitude, forecast_days)
         cls._cache[cache_key] = fallback
         cls._cache_time[cache_key] = now
         return fallback
-
 
     @classmethod
     async def fetch_training_weather_data(
@@ -211,21 +210,11 @@ class WeatherService:
 
     @classmethod
     async def get_weather_forecast(
-        cls,
-        latitude: float,
-        longitude: float,
-        hours: Optional[int] = None,
-        days: int = 16,
-        target_date: Optional[str] = None,
+        cls, latitude: float, longitude: float, hours: int = 24
     ) -> WeatherForecastResponse:
-        """Returns hourly weather forecast up to 16 days (384 hours) with date specification and date filtering."""
-        # Calculate requested days, clamped to max 16 days (current date to +15 days)
-        if hours is not None:
-            req_days = min(16, max(1, math.ceil(hours / 24)))
-        else:
-            req_days = min(16, max(1, days))
-
-        data = await cls.fetch_weather_data(latitude, longitude, forecast_days=req_days)
+        """Returns hourly weather forecast up to 72 hours."""
+        days = math.ceil(hours / 24)
+        data = await cls.fetch_weather_data(latitude, longitude, forecast_days=days)
         current = await cls.get_current_weather(latitude, longitude)
 
         hourly_raw = data.get("hourly", {})
@@ -235,19 +224,17 @@ class WeatherService:
         winds = hourly_raw.get("wind_speed_10m", [])
         rads = hourly_raw.get("direct_radiation") or hourly_raw.get("direct_normal_irradiance", [])
 
-        all_points: List[WeatherHourlyPoint] = []
-        limit = min(req_days * 24, len(times))
+        points: List[WeatherHourlyPoint] = []
+        limit = min(hours, len(times))
 
         for i in range(limit):
             t_str = times[i]
-            date_part = t_str.split("T")[0] if "T" in t_str else datetime.now(timezone.utc).strftime("%Y-%m-%d")
             time_part = t_str.split("T")[-1] if "T" in t_str else t_str
             if len(time_part) > 5:
                 time_part = time_part[:5]
 
-            all_points.append(
+            points.append(
                 WeatherHourlyPoint(
-                    date=date_part,
                     time=time_part,
                     timestamp=t_str,
                     temperature_c=float(temps[i]) if i < len(temps) else 25.0,
@@ -257,30 +244,12 @@ class WeatherService:
                 )
             )
 
-        available_dates = sorted(list(dict.fromkeys(p.date for p in all_points)))[:16]
-        # Restrict points strictly to the 16-day window (current date to +15 days)
-        valid_date_set = set(available_dates)
-        all_points = [p for p in all_points if p.date in valid_date_set]
-
-        if target_date:
-            filtered_points = [p for p in all_points if p.date == target_date]
-            selected_date = target_date
-        elif hours is not None:
-            filtered_points = all_points[:min(hours, len(all_points))]
-            selected_date = None
-        else:
-            filtered_points = all_points
-            selected_date = None
-
         return WeatherForecastResponse(
             latitude=latitude,
             longitude=longitude,
             timezone=data.get("timezone", "UTC"),
             elevation=data.get("elevation"),
             current=current,
-            hourly=filtered_points,
-            forecast_hours=len(filtered_points),
-            selected_date=selected_date,
-            available_dates=available_dates,
+            hourly=points,
+            forecast_hours=len(points),
         )
-

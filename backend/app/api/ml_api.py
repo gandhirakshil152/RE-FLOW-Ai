@@ -1,6 +1,4 @@
-from datetime import datetime, timedelta, timezone
-from typing import List, Optional
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query
 from app.core.config import settings
 from app.schemas.ml import (
     MLModelMetrics,
@@ -15,9 +13,9 @@ from app.schemas.ml import (
 from app.services.ml_service import MLService
 from app.services.anomaly_service import AnomalyService
 from app.services.ai_copilot_service import AICopilotService
+from typing import List
 
 router = APIRouter(prefix="/ml", tags=["Machine Learning & AI Engine"])
-
 
 
 @router.get("/locations", response_model=List[LocationOption])
@@ -59,37 +57,17 @@ def get_ml_metrics():
 async def get_ml_forecast(
     latitude: float = Query(settings.DEFAULT_LATITUDE, description="Latitude coordinates"),
     longitude: float = Query(settings.DEFAULT_LONGITUDE, description="Longitude coordinates"),
-    date: Optional[str] = Query(None, description="Target forecast date in YYYY-MM-DD format (from current date to +15 days)"),
-    days: int = Query(16, ge=1, le=16, description="Forecast horizon in days (1 to 16 days, max +15 days from today)"),
-    hours: Optional[int] = Query(None, ge=1, le=384, description="Forecast horizon in hours (up to 384 hours / 16 days)"),
+    hours: int = Query(24, ge=12, le=72, description="Forecast horizon in hours"),
 ):
     """
     Executes real-time inference using the trained ML model with live Open-Meteo weather.
-    Provides predicted generation & demand along with 90% confidence interval bands (P10 - P90),
-    explicit date field on every point, and date selection up to 15 days ahead.
+    Provides predicted generation & demand along with 90% confidence interval bands (P10 - P90).
     """
-    if date:
-        try:
-            target_dt = datetime.strptime(date, "%Y-%m-%d").date()
-            today = datetime.now(timezone.utc).date()
-            max_dt = today + timedelta(days=15)
-            if target_dt < today or target_dt > max_dt:
-                raise HTTPException(
-                    status_code=400,
-                    detail=f"Requested date {date} is outside the allowed forecast window. "
-                           f"Date must be between {today} and {max_dt} (up to 15 days ahead; no further feature prediction)."
-                )
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid date format. Expected YYYY-MM-DD.")
-
     return await MLService.get_instance().predict_forecast(
         latitude=latitude,
         longitude=longitude,
         hours=hours,
-        days=days,
-        target_date=date,
     )
-
 
 
 @router.get("/anomalies", response_model=AnomalyResponse)
@@ -123,5 +101,7 @@ async def get_schedule_explanation():
     was optimized and how it leverages the predicted solar window.
     """
     return await AICopilotService.answer_query(
+        query="Why was the schedule optimized and how does it reduce cost and carbon emissions?"
+    )
         query="Why was the schedule optimized and how does it reduce cost and carbon emissions?"
     )

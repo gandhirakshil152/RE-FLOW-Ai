@@ -17,10 +17,7 @@ function CustomChartTooltip({ active, payload, label, mode = 'overview' }) {
     const dataPoint = payload[0]?.payload || {};
     return (
       <div className="custom-chart-tooltip">
-        <div className="tooltip-timestamp">
-          {dataPoint.date && <span style={{ color: 'var(--color-primary-blue)', marginRight: '6px', fontWeight: 600 }}>{dataPoint.date}</span>}
-          <span>Time: {label} (Forecast)</span>
-        </div>
+        <div className="tooltip-timestamp">Time: {label} (Forecast)</div>
         {payload.map((entry, index) => {
           let unit = ' MW';
           if (entry.dataKey === 'renewableUtilization') unit = '%';
