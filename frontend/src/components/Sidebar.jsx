@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   LineChart,
@@ -7,18 +8,28 @@ import {
   Leaf,
   X,
   Zap,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { simulationMetadata } from '../data/energyData';
 
 export const navigationItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'forecast', label: 'Forecast', icon: LineChart },
-  { id: 'scheduler', label: 'Smart Scheduler', icon: CalendarClock },
-  { id: 'simulator', label: 'What-If Simulator', icon: SlidersHorizontal },
-  { id: 'impact', label: 'Impact Center', icon: Leaf },
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+  { id: 'forecast', label: 'Forecast', icon: LineChart, path: '/forecast' },
+  { id: 'scheduler', label: 'Smart Scheduler', icon: CalendarClock, path: '/scheduler' },
+  { id: 'simulator', label: 'What-If Simulator', icon: SlidersHorizontal, path: '/simulator' },
+  { id: 'impact', label: 'Impact Center', icon: Leaf, path: '/impact' },
 ];
 
-export default function Sidebar({ activeTab, onSelectTab, isOpen, onClose }) {
+export default function Sidebar({ activeTab, isOpen, onClose }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/', { replace: true });
+  };
+
   return (
     <aside className={`app-sidebar ${isOpen ? 'drawer-open' : ''}`}>
       {/* Sidebar Branding */}
@@ -50,26 +61,23 @@ export default function Sidebar({ activeTab, onSelectTab, isOpen, onClose }) {
               const Icon = item.icon;
               const isActive = activeTab === item.id;
               return (
-                <button
+                <NavLink
                   key={item.id}
+                  to={item.path}
                   id={`nav-${item.id}`}
                   className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
-                  onClick={() => {
-                    onSelectTab(item.id);
-                    if (onClose) onClose();
-                  }}
-                  type="button"
+                  onClick={() => { if (onClose) onClose(); }}
                 >
                   <Icon size={18} />
                   <span>{item.label}</span>
-                </button>
+                </NavLink>
               );
             })}
           </nav>
         </div>
       </div>
 
-      {/* Telemetry Status Footer Widget */}
+      {/* Footer with Logout */}
       <div className="sidebar-footer">
         <div className="sidebar-status-card">
           <div className="status-card-row">
@@ -82,12 +90,16 @@ export default function Sidebar({ activeTab, onSelectTab, isOpen, onClose }) {
               ISO-N Grid
             </span>
           </div>
-          <div className="status-card-row" style={{ marginTop: '0.35rem', paddingTop: '0.35rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
-            <span className="status-label">Status</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <span className="live-pulse-dot" style={{ width: '6px', height: '6px' }}></span>
-              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--color-accent-green)', letterSpacing: '0.04em' }}>SYSTEM ONLINE</span>
-            </div>
+          <div className="status-card-row" style={{ marginTop: '0.6rem', paddingTop: '0.6rem', borderTop: '1px solid rgba(255, 255, 255, 0.06)' }}>
+            <button
+              onClick={handleLogout}
+              className="sidebar-logout-btn"
+              id="sidebar-logout-btn"
+              type="button"
+            >
+              <LogOut size={14} />
+              <span>Logout</span>
+            </button>
           </div>
         </div>
       </div>
