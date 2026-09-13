@@ -9,6 +9,7 @@ import {
   Activity,
   Award,
   Clock,
+  IndianRupee,
   DollarSign,
   ShieldCheck,
 } from 'lucide-react';
@@ -23,7 +24,8 @@ const iconMap = {
   Activity: { component: Activity, colorClass: 'green' },
   Award: { component: Award, colorClass: 'amber' },
   Clock: { component: Clock, colorClass: 'amber' },
-  DollarSign: { component: DollarSign, colorClass: 'green' },
+  IndianRupee: { component: IndianRupee, colorClass: 'green' },
+  DollarSign: { component: IndianRupee, colorClass: 'green' },
   ShieldCheck: { component: ShieldCheck, colorClass: 'blue' },
 };
 

@@ -1,8 +1,9 @@
-from typing import List
+from typing import List, Optional
 from pydantic import BaseModel
 
 
 class RenewablePoint(BaseModel):
+    date: str
     timestamp: str
     time: str
     solar_generation_kw: float
@@ -15,6 +16,8 @@ class SolarGenerationResponse(BaseModel):
     peak_solar_kw: float
     capacity_kw: float
     hourly: List[RenewablePoint]
+    selected_date: Optional[str] = None
+    available_dates: List[str] = []
 
 
 class WindGenerationResponse(BaseModel):
@@ -22,6 +25,8 @@ class WindGenerationResponse(BaseModel):
     average_wind_kw: float
     capacity_kw: float
     hourly: List[RenewablePoint]
+    selected_date: Optional[str] = None
+    available_dates: List[str] = []
 
 
 class RenewableForecastResponse(BaseModel):
@@ -30,3 +35,6 @@ class RenewableForecastResponse(BaseModel):
     solar_capacity_kw: float
     wind_capacity_kw: float
     forecast: List[RenewablePoint]
+    selected_date: Optional[str] = None
+    available_dates: List[str] = []
+

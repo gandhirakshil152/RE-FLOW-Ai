@@ -24,6 +24,7 @@ class MLModelMetrics(BaseModel):
 
 
 class MLForecastPoint(BaseModel):
+    date: str
     time: str
     timestamp: str
     solar_predicted_kw: float
@@ -53,6 +54,11 @@ class MLForecastResponse(BaseModel):
     peak_demand_predicted_kw: float
     peak_demand_hour: str
     surplus_window: str
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    selected_date: Optional[str] = None
+    available_dates: List[str] = []
+
 
 
 class AnomalyItem(BaseModel):

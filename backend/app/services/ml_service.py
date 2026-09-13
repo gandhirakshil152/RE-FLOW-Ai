@@ -383,13 +383,17 @@ class MLService:
         self,
         latitude: float = settings.DEFAULT_LATITUDE,
         longitude: float = settings.DEFAULT_LONGITUDE,
-        hours: int = 24,
+        hours: Optional[int] = None,
+        days: int = 16,
+        target_date: Optional[str] = None,
     ) -> MLForecastResponse:
         """
         Executes real-time inference using the trained ML models and live Open-Meteo weather data.
-        Generates point estimates and P10-P90 probabilistic uncertainty bands.
+        Generates point estimates, P10-P90 probabilistic uncertainty bands, and explicit date fields up to 16 days.
         """
-        weather_resp = await WeatherService.get_weather_forecast(latitude, longitude, hours=hours)
+        weather_resp = await WeatherService.get_weather_forecast(
+            latitude, longitude, hours=hours, days=days, target_date=target_date
+        )
         hourly_weather = weather_resp.hourly
 
         forecast_points: List[MLForecastPoint] = []
@@ -459,6 +463,7 @@ class MLService:
 
             forecast_points.append(
                 MLForecastPoint(
+                    date=pt.date,
                     time=pt.time,
                     timestamp=pt.timestamp,
                     solar_predicted_kw=solar_pred,
@@ -483,6 +488,7 @@ class MLService:
         else:
             surplus_window = "11:00 - 15:00 (Predicted Midday High)"
 
+        avail = weather_resp.available_dates
         return MLForecastResponse(
             model_name=self.metrics["model_name"],
             algorithm=self.metrics["algorithm"],
@@ -494,4 +500,9 @@ class MLService:
             peak_demand_predicted_kw=peak_dem,
             peak_demand_hour=peak_dem_hour,
             surplus_window=surplus_window,
+            start_date=avail[0] if avail else None,
+            end_date=avail[-1] if avail else None,
+            selected_date=target_date,
+            available_dates=avail,
         )
+

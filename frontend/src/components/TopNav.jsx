@@ -1,16 +1,12 @@
-import { Menu, RefreshCw, Sparkles, Cpu, Brain } from 'lucide-react';
+import { Menu, RefreshCw, Cpu } from 'lucide-react';
 import { navigationItems } from './Sidebar';
 import { useSimulation } from '../context/SimulationContext';
 
 export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefreshing, lastUpdated = 'Just now' }) {
   const {
-    isDemoMode,
-    toggleDemoMode,
     isLiveBackend,
     liveWeather,
-    mlMetrics,
     setIsTrainingModalOpen,
-    setIsCopilotOpen,
   } = useSimulation();
   const currentItem = navigationItems.find((item) => item.id === activeTab) || navigationItems[0];
 
@@ -56,7 +52,7 @@ export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefres
           </div>
         )}
 
-        {/* Live Retrain ML Button for Hackathon Showcases */}
+        {/* Live Retrain ML Button */}
         <button
           className="btn btn-secondary-outline btn-sm"
           onClick={() => setIsTrainingModalOpen(true)}
@@ -75,42 +71,6 @@ export default function TopNav({ activeTab, onToggleSidebar, onRefresh, isRefres
           <Cpu size={13} color="#38bdf8" />
           <span>Retrain ML</span>
         </button>
-
-        {/* Demo Mode Button in Header */}
-        <button
-          className={`btn ${isDemoMode ? 'btn-primary-glow active' : 'btn-secondary-outline'} btn-sm demo-mode-toggle`}
-
-          onClick={toggleDemoMode}
-          title={isDemoMode ? 'Click to reset to standard configuration' : 'Activate impressive 100-EV pre-configured scenario'}
-          type="button"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.78rem', fontWeight: 700 }}
-        >
-          <Sparkles size={13} style={{ color: isDemoMode ? '#030712' : 'var(--color-accent-amber)' }} />
-          <span>{isDemoMode ? 'Demo Mode Active' : 'Demo Mode'}</span>
-        </button>
-
-        {/* Small Badge: DEMO SCENARIO */}
-        {isDemoMode && (
-          <span className="badge badge-amber-warning demo-scenario-badge" style={{ fontSize: '0.68rem', fontWeight: 800, letterSpacing: '0.04em' }}>
-            DEMO SCENARIO
-          </span>
-        )}
-
-        {/* Backend Connectivity Status Badge */}
-        {!isDemoMode && (
-          <div
-            className={`badge ${isLiveBackend ? 'badge-emerald-success' : 'badge-amber-warning'}`}
-            style={{ fontSize: '0.72rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-          >
-            <span>{isLiveBackend ? 'LIVE API ONLINE' : 'LOCAL EDGE ENGINE'}</span>
-          </div>
-        )}
-
-        {/* Animated Status Indicator: ● SYSTEM ONLINE */}
-        <div className="status-indicator-online" title={`Grid telemetry online. Last sync: ${lastUpdated}`}>
-          <span className="live-pulse-dot"></span>
-          <span>{isLiveBackend ? 'BACKEND LIVE' : 'SYSTEM ONLINE'}</span>
-        </div>
 
         {/* Sync Trigger */}
         <button

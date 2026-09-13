@@ -15,7 +15,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   ArrowRight,
-  DollarSign,
+  IndianRupee,
   Leaf,
   Activity,
   Cpu,
@@ -143,7 +143,7 @@ export default function WhatIfSimulator() {
             value={`₹${netSavingsINR.toLocaleString()}`}
             delta="Peak Tariff Avoided"
             caption={`vs baseline ${without.estimatedCost}`}
-            icon={DollarSign}
+            icon={IndianRupee}
             colorClass="green"
           />
           <MetricCard

@@ -7,7 +7,7 @@ import {
 import {
   Award,
   Zap,
-  DollarSign,
+  IndianRupee,
   Leaf,
   SunMedium,
   CheckCircle2,
@@ -40,7 +40,7 @@ export default function ImpactCenter() {
       title: 'Estimated Cost Saving',
       value: latestImpactMetrics.costSaving,
       subtitle: 'Tariff savings per operational cycle',
-      icon: DollarSign,
+      icon: IndianRupee,
       colorClass: 'green',
       delta: 'Peak charge avoided',
     },
@@ -242,7 +242,7 @@ export default function ImpactCenter() {
                 <div>
                   <strong style={{ color: 'var(--color-text-bright)' }}>Better cost efficiency:</strong>
                   <p style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
-                    Captures off-peak surplus tariffs ($18–$24/MWh), saving {latestImpactMetrics.costSaving} per run.
+                    Captures off-peak surplus tariffs (₹1,500–₹2,000/MWh), saving {latestImpactMetrics.costSaving} per run.
                   </p>
                 </div>
               </div>

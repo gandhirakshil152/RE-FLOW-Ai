@@ -87,10 +87,43 @@ async def test_all_endpoints():
         print("\n[7] Testing GET /api/forecast...")
         res_fc = await client.get("/api/forecast?hours=24")
         assert res_fc.status_code == 200
-        fc_points = res_fc.json()["forecast"]
-        print(f"    Combined forecast points: {len(fc_points)}")
+        fc_data = res_fc.json()
+        fc_points = fc_data["forecast"]
+        assert len(fc_points) > 0, "No forecast points returned"
+        assert "date" in fc_points[0], "Forecast point must have 'date' field"
+        assert len(fc_points[0]["date"]) == 10, f"Invalid date format: {fc_points[0]['date']}"
+        assert "available_dates" in fc_data, "ForecastResponse must have available_dates"
+        print(f"    Combined forecast points: {len(fc_points)}, Date on point: {fc_points[0]['date']}")
+        print(f"    Available dates: {fc_data['available_dates'][:3]}... ({len(fc_data['available_dates'])} total)")
         sample_pt = fc_points[12] if len(fc_points) > 12 else fc_points[0]
-        print(f"    Sample Point ({sample_pt['time']}): Solar={sample_pt['solar_kw']} kW, Wind={sample_pt['wind_kw']} kW, Demand={sample_pt['demand_kw']} kW, Surplus={sample_pt['surplus_renewable_kw']} kW")
+        print(f"    Sample Point ({sample_pt['date']} {sample_pt['time']}): Solar={sample_pt['solar_kw']} kW, Wind={sample_pt['wind_kw']} kW, Demand={sample_pt['demand_kw']} kW, Surplus={sample_pt['surplus_renewable_kw']} kW")
+
+        # 7b. Test Target Date Filtering
+        test_date = fc_data["available_dates"][0]
+        print(f"\n[7b] Testing GET /api/forecast?date={test_date} (Target Date Filter)...")
+        res_date = await client.get(f"/api/forecast?date={test_date}")
+        assert res_date.status_code == 200
+        date_data = res_date.json()
+        assert date_data["selected_date"] == test_date
+        assert all(p["date"] == test_date for p in date_data["forecast"]), "All returned points must match the requested date"
+        print(f"    Received {len(date_data['forecast'])} points all matching target date {test_date}")
+
+        # 7c. Test Date Beyond Allowed 15 Days (Must reject - no further feature prediction)
+        print("\n[7c] Testing GET /api/forecast with date > 15 days ahead (boundary check)...")
+        res_invalid = await client.get("/api/forecast?date=2099-01-01")
+        assert res_invalid.status_code == 400
+        print(f"    Correctly rejected out-of-bounds date: {res_invalid.json()['detail']}")
+
+        # 7d. Test Full 16-Day Forecast Range (Current Date to +15 Days)
+        print("\n[7d] Testing GET /api/forecast?days=16 (Full 16-day horizon)...")
+        res_16d = await client.get("/api/forecast?days=16")
+        assert res_16d.status_code == 200
+        data_16d = res_16d.json()
+        print(f"    Total points for 16 days: {len(data_16d['forecast'])}, Dates: {len(data_16d['available_dates'])}")
+        assert len(data_16d['available_dates']) >= 15, "Must provide at least 15 days ahead of dates"
+        assert all("date" in p for p in data_16d['forecast']), "All points must have date field"
+
+
 
         # 8. Google OR-Tools Optimization API
         print("\n[8] Testing POST /api/optimize (Google OR-Tools MILP)...")
@@ -234,16 +267,6 @@ async def test_all_endpoints():
         print(f"    Samples Used: {retrain_data['samples_used']} real hourly records (Duration: {retrain_data['training_duration_ms']} ms)")
         print(f"    Updated Model Accuracy: Overall R²={retrain_data['overall_r2']}, Solar R²={retrain_data['solar_r2']}, Demand R²={retrain_data['demand_r2']}")
         print(f"    Loss Convergence: {retrain_data['loss_history'][0]} -> {retrain_data['loss_history'][-1]}")
-
-    print("\n==================================================")
-    print("   ALL 19 VERIFICATION TESTS PASSED SUCCESSFULLY! ")
-    print("==================================================")
-
-
-if __name__ == "__main__":
-    asyncio.run(test_all_endpoints())
-
-
 
     print("\n==================================================")
     print("   ALL 19 VERIFICATION TESTS PASSED SUCCESSFULLY! ")

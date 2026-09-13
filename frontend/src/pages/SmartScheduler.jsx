@@ -8,7 +8,7 @@ import {
   ShieldCheck,
   ArrowRight,
   Info,
-  DollarSign,
+  IndianRupee,
   ChevronRight,
   Filter,
   Calculator,
@@ -195,7 +195,7 @@ export default function SmartScheduler() {
             title="Target Green Window"
             value="11:00 – 15:30"
             delta="Solar Surplus Period"
-            caption="Tariffs dip to ~$18–$24/MWh"
+            caption="Tariffs dip to ~₹1,500–₹2,000/MWh"
             icon={Clock}
             colorClass="amber"
           />
@@ -204,7 +204,7 @@ export default function SmartScheduler() {
             value="₹24,850"
             delta="-31% off baseline bill"
             caption="Aggregated 24h schedule"
-            icon={DollarSign}
+            icon={IndianRupee}
             colorClass="green"
           />
           <MetricCard

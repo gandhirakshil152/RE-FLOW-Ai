@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 from app.core.config import settings
 from app.schemas.weather import WeatherHourlyPoint
 from app.schemas.renewable import (
@@ -72,10 +72,14 @@ class RenewableService:
         cls,
         latitude: float = settings.DEFAULT_LATITUDE,
         longitude: float = settings.DEFAULT_LONGITUDE,
-        hours: int = 24,
+        hours: Optional[int] = None,
+        days: int = 16,
+        target_date: Optional[str] = None,
     ) -> RenewableForecastResponse:
-        """Generates hourly solar and wind generation forecast based on weather conditions."""
-        weather_resp = await WeatherService.get_weather_forecast(latitude, longitude, hours=hours)
+        """Generates hourly solar and wind generation forecast up to 16 days with date specification."""
+        weather_resp = await WeatherService.get_weather_forecast(
+            latitude, longitude, hours=hours, days=days, target_date=target_date
+        )
         hourly_weather: List[WeatherHourlyPoint] = weather_resp.hourly
 
         points: List[RenewablePoint] = []
@@ -95,6 +99,7 @@ class RenewableService:
 
             points.append(
                 RenewablePoint(
+                    date=pt.date,
                     timestamp=pt.timestamp,
                     time=pt.time,
                     solar_generation_kw=solar_kw,
@@ -111,6 +116,8 @@ class RenewableService:
             solar_capacity_kw=cls.SOLAR_CAPACITY_KW,
             wind_capacity_kw=cls.WIND_CAPACITY_KW,
             forecast=points,
+            selected_date=target_date,
+            available_dates=weather_resp.available_dates,
         )
 
     @classmethod
@@ -118,9 +125,13 @@ class RenewableService:
         cls,
         latitude: float = settings.DEFAULT_LATITUDE,
         longitude: float = settings.DEFAULT_LONGITUDE,
-        hours: int = 24,
+        hours: Optional[int] = None,
+        days: int = 16,
+        target_date: Optional[str] = None,
     ) -> SolarGenerationResponse:
-        forecast = await cls.get_renewable_forecast(latitude, longitude, hours=hours)
+        forecast = await cls.get_renewable_forecast(
+            latitude, longitude, hours=hours, days=days, target_date=target_date
+        )
         current_solar = forecast.forecast[0].solar_generation_kw if forecast.forecast else 0.0
         peak_solar = max((p.solar_generation_kw for p in forecast.forecast), default=0.0)
 
@@ -129,6 +140,8 @@ class RenewableService:
             peak_solar_kw=peak_solar,
             capacity_kw=cls.SOLAR_CAPACITY_KW,
             hourly=forecast.forecast,
+            selected_date=target_date,
+            available_dates=forecast.available_dates,
         )
 
     @classmethod
@@ -136,9 +149,13 @@ class RenewableService:
         cls,
         latitude: float = settings.DEFAULT_LATITUDE,
         longitude: float = settings.DEFAULT_LONGITUDE,
-        hours: int = 24,
+        hours: Optional[int] = None,
+        days: int = 16,
+        target_date: Optional[str] = None,
     ) -> WindGenerationResponse:
-        forecast = await cls.get_renewable_forecast(latitude, longitude, hours=hours)
+        forecast = await cls.get_renewable_forecast(
+            latitude, longitude, hours=hours, days=days, target_date=target_date
+        )
         current_wind = forecast.forecast[0].wind_generation_kw if forecast.forecast else 0.0
         avg_wind = (
             round(sum(p.wind_generation_kw for p in forecast.forecast) / len(forecast.forecast), 1)
@@ -151,4 +168,7 @@ class RenewableService:
             average_wind_kw=avg_wind,
             capacity_kw=cls.WIND_CAPACITY_KW,
             hourly=forecast.forecast,
+            selected_date=target_date,
+            available_dates=forecast.available_dates,
         )
+

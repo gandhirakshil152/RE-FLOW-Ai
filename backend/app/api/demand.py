@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Query
 from app.schemas.demand import (
     DemandCurrentResponse,
@@ -29,9 +30,12 @@ def get_demand_history(
 
 @router.get("/forecast", response_model=DemandForecastResponse)
 def get_demand_forecast(
-    hours: int = Query(24, ge=1, le=168, description="Forecast horizon in hours"),
+    date: Optional[str] = Query(None, description="Target forecast date in YYYY-MM-DD format (from current date to +15 days)"),
+    days: int = Query(16, ge=1, le=16, description="Forecast horizon in days (1 to 16 days)"),
+    hours: Optional[int] = Query(None, ge=1, le=384, description="Forecast horizon in hours (up to 384 hours)"),
 ):
     """
-    Retrieve predicted future electricity demand profile for the facility.
+    Retrieve predicted future electricity demand profile for the facility up to 16 days.
     """
-    return DemandService.get_demand_forecast(hours=hours)
+    return DemandService.get_demand_forecast(hours=hours, days=days, target_date=date)
+

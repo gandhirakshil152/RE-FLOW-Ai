@@ -61,7 +61,7 @@ export default function AICopilotDrawer({ isOpen, onClose }) {
       if (!resp) {
         // Fallback intelligent reasoning
         resp = {
-          answer: "The optimization engine shifted flexible loads (EVs and BESS) into midday (11:00 AM – 3:00 PM) to absorb 550+ kW of clean on-site solar generation, avoiding peak grid tariffs ($0.28/kWh) and avoiding 650 kg of CO₂ emissions.",
+          answer: "The optimization engine shifted flexible loads (EVs and BESS) into midday (11:00 AM – 3:00 PM) to absorb 550+ kW of clean on-site solar generation, avoiding peak grid tariffs (₹11.80/kWh) and avoiding 650 kg of CO₂ emissions.",
           insights: [
             "Solar absorption efficiency increased to 88%.",
             "Critical hospital/server room baseline remains untouched.",

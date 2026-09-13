@@ -1,153 +1,51 @@
-import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import TopNav from './components/TopNav';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+import { SimulationProvider } from './context/SimulationContext';
+import { AuthProvider, ProtectedRoute } from './context/AuthContext';
+
+// Public pages
+import LandingPage from './pages/LandingPage';
+import AdminLoginPage from './pages/AdminLoginPage';
+
+// Protected pages
 import Dashboard from './pages/Dashboard';
 import Forecast from './pages/Forecast';
 import SmartScheduler from './pages/SmartScheduler';
 import WhatIfSimulator from './pages/WhatIfSimulator';
 import ImpactCenter from './pages/ImpactCenter';
-import AICopilotDrawer from './components/AICopilotDrawer';
-import MLTrainingModal from './components/MLTrainingModal';
-import { Brain, Cpu } from 'lucide-react';
-import { SimulationProvider, useSimulation } from './context/SimulationContext';
 
-function AppContent() {
-  const {
-    activeTab,
-    setActiveTab,
-    isRefreshing,
-    handleRefresh,
-    lastUpdated,
-    isCopilotOpen,
-    setIsCopilotOpen,
-    isTrainingModalOpen,
-    setIsTrainingModalOpen,
-  } = useSimulation();
-
-
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Dynamic View router based on activeTab (no page reload, instant switching)
-  const renderCurrentPage = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'forecast':
-        return <Forecast />;
-      case 'scheduler':
-        return <SmartScheduler />;
-      case 'simulator':
-        return <WhatIfSimulator />;
-      case 'impact':
-        return <ImpactCenter />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
-  return (
-    <div className="app-container">
-      {/* Mobile Drawer Overlay */}
-      <div
-        className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
-        onClick={() => setSidebarOpen(false)}
-      />
-
-      {/* Persistent Desktop / Responsive Drawer Sidebar */}
-      <Sidebar
-        activeTab={activeTab}
-        onSelectTab={(tabId) => setActiveTab(tabId)}
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-
-      {/* Main App Stage */}
-      <div className="main-stage">
-        <TopNav
-          activeTab={activeTab}
-          onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
-          lastUpdated={lastUpdated}
-        />
-
-        {/* Dynamic Active Page View with Smooth Page Transitions */}
-        <main style={{ flex: 1 }}>
-          <div key={activeTab} className="page-transition-wrapper">
-            {renderCurrentPage()}
-          </div>
-        </main>
-
-        <footer className="app-footer">
-          <p>
-            RE-FLOW AI &bull; Autonomous Renewable Energy Intelligence Platform &bull; National CleanTech Hackathon
-          </p>
-        </footer>
-      </div>
-
-      {/* Floating Action Buttons for Hackathon Presentation */}
-      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 900, display: 'flex', gap: '0.65rem' }}>
-        <button
-          onClick={() => setIsTrainingModalOpen(true)}
-          className="btn btn-secondary-outline"
-          style={{
-            borderRadius: '24px',
-            padding: '0.65rem 1.1rem',
-            background: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(8px)',
-            border: '1px solid rgba(0, 194, 255, 0.4)',
-            color: '#38bdf8',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.4)',
-            fontSize: '0.82rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '7px',
-          }}
-          title="Retrain ML model on live Open-Meteo satellite feed"
-        >
-          <Cpu size={16} />
-          <span>Retrain on Satellite</span>
-        </button>
-
-        <button
-          onClick={() => setIsCopilotOpen(true)}
-          className="btn btn-primary-glow"
-          style={{
-            borderRadius: '24px',
-            padding: '0.65rem 1.25rem',
-            boxShadow: '0 8px 25px rgba(0, 245, 155, 0.35)',
-            fontSize: '0.82rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '7px',
-          }}
-          title="Open RE-FLOW AI Copilot"
-        >
-          <Brain size={16} />
-          <span>AI Copilot</span>
-        </button>
-      </div>
-
-      {/* Global AI Copilot Drawer */}
-      <AICopilotDrawer
-        isOpen={isCopilotOpen}
-        onClose={() => setIsCopilotOpen(false)}
-      />
-
-      {/* Real-time Satellite ML Training Modal */}
-      <MLTrainingModal
-        isOpen={isTrainingModalOpen}
-        onClose={() => setIsTrainingModalOpen(false)}
-      />
-    </div>
-
-  );
-}
+// Layout
+import DashboardLayout from './components/DashboardLayout';
 
 export default function App() {
   return (
-    <SimulationProvider>
-      <AppContent />
-    </SimulationProvider>
+    <AuthProvider>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/splash" element={<LandingPage />} />
+        <Route path="/login" element={<AdminLoginPage />} />
+
+        {/* Protected Routes (require authentication) */}
+        <Route element={<ProtectedRoute />}>
+          <Route
+            element={
+              <SimulationProvider>
+                <DashboardLayout />
+              </SimulationProvider>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/forecast" element={<Forecast />} />
+            <Route path="/scheduler" element={<SmartScheduler />} />
+            <Route path="/simulator" element={<WhatIfSimulator />} />
+            <Route path="/impact" element={<ImpactCenter />} />
+          </Route>
+        </Route>
+
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AuthProvider>
   );
 }

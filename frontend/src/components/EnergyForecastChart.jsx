@@ -21,7 +21,7 @@ function CustomChartTooltip({ active, payload, label, mode = 'overview' }) {
         {payload.map((entry, index) => {
           let unit = ' MW';
           if (entry.dataKey === 'renewableUtilization') unit = '%';
-          if (entry.dataKey === 'estimatedCost') unit = ' $/MWh';
+          if (entry.dataKey === 'estimatedCost') unit = ' ₹/MWh';
           if (entry.dataKey === 'carbonImpact') unit = ' gCO₂/kWh';
 
           return (
@@ -118,7 +118,7 @@ export default function EnergyForecastChart({
                 orientation="right"
                 stroke="#64748b"
                 tick={{ fill: '#94a3b8', fontSize: 12, fontFamily: 'var(--font-sans)' }}
-                unit={mode === 'renewable' ? '%' : ' $/MWh'}
+                unit={mode === 'renewable' ? '%' : ' ₹/MWh'}
                 domain={mode === 'renewable' ? [0, 100] : [0, 140]}
               />
             )}
@@ -266,7 +266,7 @@ export default function EnergyForecastChart({
                   yAxisId="right"
                   type="monotone"
                   dataKey="estimatedCost"
-                  name="Est. Clearing Tariff ($/MWh)"
+                  name="Est. Clearing Tariff (₹/MWh)"
                   stroke="#f59e0b"
                   strokeWidth={2.5}
                   strokeDasharray="4 4"

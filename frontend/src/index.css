@@ -77,6 +77,14 @@
   padding: 0;
 }
 
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: inherit;
+}
+
 html {
   color-scheme: dark;
   scroll-behavior: smooth;
@@ -238,22 +246,31 @@ body {
   padding: 0.7rem 0.9rem;
   border-radius: var(--radius-sm);
   color: var(--color-text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
   text-decoration: none;
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: 500;
   transition: all 0.2s ease;
   position: relative;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  outline: none;
+  box-shadow: none;
 }
 
-.sidebar-nav-link:hover {
+.sidebar-nav-link:hover:not(:disabled) {
   color: var(--color-text-bright);
   background-color: var(--color-bg-surface-elevated);
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-nav-link.active {
   color: var(--color-accent-green);
   background: var(--color-accent-green-subtle);
   border: 1px solid var(--color-accent-green-border);
+  font-weight: 600;
 }
 
 .sidebar-nav-link.active::before {
@@ -266,6 +283,49 @@ body {
   background-color: var(--color-accent-green);
   border-radius: 0 4px 4px 0;
   box-shadow: 0 0 10px var(--color-accent-green);
+}
+
+/* Non-active tabs standard dull styling */
+.sidebar-nav-link:not(.active) {
+  color: #64748b;
+  opacity: 0.65;
+}
+
+.sidebar-nav-link:not(.active):hover {
+  color: var(--color-text-bright);
+  opacity: 1;
+  background-color: var(--color-bg-surface-elevated);
+}
+
+.sidebar-nav-link:disabled,
+.sidebar-nav-link.disabled {
+  opacity: 0.3;
+  color: var(--color-text-dim);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sidebar-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.18);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
 }
 
 /* Sidebar Telemetry Health Footer Widget */
